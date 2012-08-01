@@ -84,23 +84,22 @@ repo() {
 	render 200
 }
 
+from_qstring() {
+	local key="$1"
+
+	(
+		IFS='&'
+		for param in $QUERY_STRING; do (
+			IFS==
+			value_if_key $key $param
+		) done
+	)
+}
+
 cd $REPO_PATH || render 500 "Could not cd to REPO_PATH ($REPO_PATH)"
 
-repo=$(
-	IFS='&'
-	for param in $QUERY_STRING; do (
-		IFS==
-		value_if_key repo $param
-	) done
-)
-
-owner=$(
-	IFS='&'
-	for param in $QUERY_STRING; do (
-		IFS==
-		value_if_key owner $param
-	) done
-)
+repo=$(from_qstring repo)
+owner=$(from_qstring owner)
 
 [ "$repo"  ] || render 400 'No repo supplied in query string'
 [ "$owner" ] || render 400 'No owner supplied in query string'
