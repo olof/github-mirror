@@ -51,7 +51,7 @@ render() {
 
 	[ "$msg" ] || msg=$status_msg
 
-	printf "HTTP/1.1 $status $status_msg\r\n"
+	printf "Status: $status $status_msg\r\n"
 	printf "Content-Type: text/plain; charset=UTF-8\r\n"
 	printf "\r\n"
 
