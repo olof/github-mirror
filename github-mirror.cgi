@@ -10,13 +10,38 @@
 # ========
 # This is a CGI script used for mirroring a github hosted repo.
 # It's intended to be hosted somewhere Github can make requests
-# against it as a repository service hook. The usecase in mind
-# is to be able to run local update hooks for sending commit
+# against it as a repository service hook. The usecase in mind is
+# to be able to run local post-receive hooks for sending commit
 # mails with diffs (something github unfortunately doesn't
 # support currently).
 
+TMP=
+
 log() {
 	echo "$@" 1>&2
+}
+
+gen_clone_url() {
+	local repo="$1" owner="$2"
+	printf $GITHUB_CLONE_URL "$owner" "$repo"
+}
+
+tmpclone() {
+	local repo="$1" owner="$2" repodir="$PWD/$owner/$repo.git"
+	TMP=$(mktemp -d /tmp/github-mirror-XXXXXX)
+	[ "$TMP" ] || render 500 'Could not create temporary directory'
+	trap cleanup EXIT
+
+	(
+		cd $TMP &&
+		git clone "$(gen_clone_url $repo $owner)" . >/dev/null &&
+		git remote add local $repodir &&
+		git push local --all >/dev/null
+	) || render 500 "Could not clone $owner/$repo"
+}
+
+cleanup() {
+	[ "$TMP" ] && [ -d "$TMP" ] && rm -rf "$TMP"
 }
 
 render() {
@@ -76,9 +101,7 @@ repo() {
 	local repo="$1" owner="$2"
 
 	verify_repo "$repo" "$owner"
-	
-	cd "$owner/$repo.git" || render 500 "Could not cd to $owner/$repo"
-	git fetch -p origin || render 500 "Failed to fetch in $owner/$repo"
+	tmpclone "$repo" "$owner"
 	render 200
 }
 
