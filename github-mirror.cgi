@@ -21,6 +21,15 @@ log() {
 	echo "$@" 1>&2
 }
 
+github_ip() {
+	local client="$1"
+	for ip in $GITHUB_IP; do
+		[ "$client" = "$ip" ] && return 0
+	done
+
+	return 1
+}
+
 gen_clone_url() {
 	local repo="$1" owner="$2"
 	printf $GITHUB_CLONE_URL "$owner" "$repo"
@@ -128,5 +137,6 @@ owner=$(from_qstring owner)
 [ "$repo"  ] || render 400 'No repo supplied in query string'
 [ "$owner" ] || render 400 'No owner supplied in query string'
 
+github_ip "$REMOTE_ADDR" || render 403 'Not a known github IP address'
 repo "$repo" "$owner"
 
