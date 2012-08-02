@@ -15,8 +15,6 @@
 # mails with diffs (something github unfortunately doesn't
 # support currently).
 
-REPO_PATH='.'
-
 log() {
 	echo "$@" 1>&2
 }
@@ -96,6 +94,9 @@ from_qstring() {
 	)
 }
 
+. /etc/github-mirror.conf || render 500 "Could not load config file"
+
+[ "$REPO_PATH" ] || render 500 "No repo path specified"
 cd $REPO_PATH || render 500 "Could not cd to REPO_PATH ($REPO_PATH)"
 
 repo=$(from_qstring repo)
