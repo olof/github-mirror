@@ -45,7 +45,7 @@ tmpclone() {
 		cd $TMP &&
 		git clone "$(gen_clone_url $repo $owner)" . >/dev/null &&
 		git remote add local $repodir &&
-		git push local --all >/dev/null
+		git push local --force --all >/dev/null
 	) || render 500 "Could not clone $owner/$repo"
 }
 
